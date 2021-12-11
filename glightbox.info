@@ -1,0 +1,5 @@
+type = module
+name = GLightbox
+description = Javascript Lightbox plugin.
+backdrop = 1.x
+configure = admin/config/media/glightbox

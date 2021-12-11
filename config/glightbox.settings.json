@@ -1,0 +1,23 @@
+{
+  "theme": "default",
+  "preload": true,
+  "effect_open": "zoom",
+  "effect_close": "zoom",
+  "effect_slide": "slide",
+  "ui_close_btn": true,
+  "ui_close_outside": true,
+  "ui_descr_position": "bottom",
+  "ui_more_text": "See more",
+  "ui_more_length": 60,
+  "ui_width": "900px",
+  "ui_height": "506px",
+  "navigation_loop": false,
+  "navigation_touch": true,
+  "navigation_touch_follow_axis": true,
+  "navigation_keyboard": true,
+  "navigation_zoomable": true,
+  "navigation_draggable": true,
+  "navigation_drag_tolerance_x": 40,
+  "navigation_drag_tolerance_y": 65,
+  "navigation_drag_auto_snap": true
+}

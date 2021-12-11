@@ -1,0 +1,387 @@
+<?php
+/**
+ * @file
+ * Glightbox - javascript Lightbox plugin.
+ */
+
+
+/**
+ * Implements hook_library_info().
+ */
+function glightbox_library_info() {
+  $module_path = backdrop_get_path('module', 'glightbox');
+
+  $libraries['glightbox'] = array(
+    'title' => 'Glightbox',
+    'website' => 'https://github.com/biati-digital/glightbox',
+    'version' => '3.1.0',
+    'js' => array(
+      $module_path . '/library/glightbox.min.js' => array(
+        'weight' => 1,
+      ),
+    ),
+    'css' => array(
+      $module_path . '/library/glightbox.min.css' => array(),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function glightbox_config_info() {
+  return array(
+    'glightbox.settings' => array(
+      'label' => t('Glightbox settings'),
+      'group' => t('Configuration'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function glightbox_menu() {
+  $items['admin/config/media/glightbox'] = array(
+    'title' => 'Glightbox',
+    'description' => 'Configure global Glightbox options.',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('glightbox_admin_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'glightbox.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function glightbox_field_formatter_info() {
+  return array(
+    'glightbox' => array(
+      'label' => t('Glightbox'),
+      'field types' => array('image'),
+      'settings' => array(
+        'glightbox_image_style_content' => '',
+        'glightbox_image_style_lightbox' => '',
+        'glightbox_title_src' => '',
+        'glightbox_description_src' => '',
+        'glightbox_desc_position' => '',
+        'glightbox_view_mode' => '',
+        'glightbox_gallery_id' => '',
+        'glightbox_gallery_mode' => FALSE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function glightbox_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $settings = $instance['display'][$view_mode]['settings'];
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
+  $gallery_id = '';
+
+  $element['glightbox_image_style_content'] = array(
+    '#type' => 'select',
+    '#title' => t('Content image style'),
+    '#description' => t('The image style to use for the <em>content</em> image.'),
+    '#options' => $image_styles,
+    '#empty_option' => t('None (original image)'),
+    '#default_value' => $settings['glightbox_image_style_content'],
+  );
+
+  $element['glightbox_image_style_lightbox'] = array(
+    '#type' => 'select',
+    '#title' => t('Lightbox image style'),
+    '#description' => t('The image style to use for the <em>lightbox</em> image.'),
+    '#options' => $image_styles,
+    '#empty_option' => t('None (original image)'),
+    '#default_value' => $settings['glightbox_image_style_lightbox'],
+  );
+
+  // Set list of options for text source.
+  $text_options = array(
+    'alt_tag'   => get_option_label('alt_tag'),
+    'title_tag' => get_option_label('title_tag'),
+  );
+  // Create list of valid text fields and gallery id for view.
+  if (isset($form_state['view'])) {
+    $view = $form_state['view'];
+    $text_options += get_non_excluded_text_fields_list($view);
+    $gallery_id = 'gallery-' . $view->name . '-' . $view->current_display;
+  }
+  // Get list of valid text fields and gallery id from the node.
+  if(isset($form['#fields'])) {
+    // Add option to use node title.
+    $text_options['node_title'] = get_option_label('node_title');
+    // Add any text field to the options list.
+    foreach ($form['#fields'] as $node_field_name) {
+      $field_info = field_info_field($node_field_name);
+      if (in_array($field_info['type'], get_valid_field_types())) {
+        $text_options[$node_field_name] = get_option_label($node_field_name, $instance);
+      }
+    }
+    $gallery_id = backdrop_html_id('gallery-' . $instance['bundle']);
+  }
+
+  $element['glightbox_title_src'] = array(
+    '#type' => 'select',
+    '#title' => t('Title'),
+    '#description' => t('Source for the lightbox title text.'),
+    '#options' => $text_options,
+    '#empty_option' => t('None'),
+    '#default_value' => $settings['glightbox_title_src'],
+  );
+
+  $element['glightbox_description_src'] = array(
+    '#type' => 'select',
+    '#title' => t('Description'),
+    '#description' => t('Source for the lightbox description text.'),
+    '#options' => $text_options,
+    '#empty_option' => t('None'),
+    '#default_value' => $settings['glightbox_description_src'],
+  );
+
+  $element['glightbox_desc_position'] = array(
+    '#type' => 'select',
+    '#title' => t('Caption position'),
+    '#options' => $text_options,
+    '#empty_option' => t('None'),
+    '#default_value' => $settings['glightbox_desc_position'],
+  );
+
+  // The long description is put in a separate markup field because othewise it is not wrapped in
+  // 'Manage displays' tab with enabled default('Seven') admin theme and thus creates extremely wide space.
+  $element['glightbox_desc_position_description'] = array(
+    '#prefix' => '<div class="description" style="white-space: normal;">', // Reset wrapping(!).
+    '#markup' => t('Defines position of the <em>Title</em> and <em>Description</em> area in the lightbox for individual node. The output of the field must be text with one of the following values: <em>bottom, top, left, right</em> (case insensitive). Any other value will have no effect. <a href="@link_taxonomy" target="_blank">Taxonomy terms</a> can serve well for that purpose. This setting overrides the global setting in the <a href="@link_config" target="_blank">configuration page</a> (currently set to <em>@global_position_setting</em>).', array('@link_taxonomy' => url('/admin/structure/taxonomy'), '@link_config' => url('/admin/config/media/glightbox'), '@global_position_setting' => config_get('glightbox.settings', 'ui_descr_position'))),
+    '#suffix' => '</div>',
+  );
+
+  // Add the current view mode so we can control the view mode for node fields.
+  $element['glightbox_view_mode'] = array(
+    '#type' => 'hidden',
+    '#value' => $view_mode,
+  );
+
+  // Store gallery id here for later use.
+  $element['glightbox_gallery_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $gallery_id,
+  );
+
+  if ($field['cardinality'] != 1 || $instance['entity_type'] == 'views') {
+    $element['glightbox_gallery_mode'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Gallery'),
+      '#description' => t('Display images in a gallery.'),
+      '#default_value' => $settings['glightbox_gallery_mode'],
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function glightbox_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $settings = $instance['display'][$view_mode]['settings'];
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
+
+  // Content image style.
+  if (!empty($settings['glightbox_image_style_content'])) {
+    $summary[] = t('Content image style: @content', array('@content' => $image_styles[$settings['glightbox_image_style_content']]));
+  }
+  else {
+    $summary[] = t('Content image style: None (original image)');
+  }
+
+  // Lightbox image style.
+  if (!empty($settings['glightbox_image_style_lightbox'])) {
+    $summary[] = t('Lightbox image style: @lightbox', array('@lightbox' => $image_styles[$settings['glightbox_image_style_lightbox']]));
+  }
+  else {
+    $summary[] = t('Lightbox image style: None (original image)');
+  }
+
+  // Title.
+  if (!empty($settings['glightbox_title_src'])) {
+    $ui_name = get_option_label($settings['glightbox_title_src'], $instance);
+    $summary[] = t('Title: @title', array('@title' => $ui_name));
+  }
+  else {
+    $summary[] = t('Title: None');
+  }
+
+  // Description.
+  if (!empty($settings['glightbox_description_src'])) {
+    $ui_name = get_option_label($settings['glightbox_description_src'], $instance);
+    $summary[] = t('Description: @description', array('@description' => $ui_name));
+  }
+  else {
+    $summary[] = t('Description: None');
+  }
+
+  // Caption position.
+  if (!empty($settings['glightbox_desc_position'])) {
+    $ui_name = get_option_label($settings['glightbox_desc_position'], $instance);
+    $summary[] = t('Caption position: @title', array('@title' => $ui_name));
+  }
+  else {
+    $summary[] = t('Caption position: None');
+  }
+
+  // Gallery.
+  if ($field['cardinality'] != 1) {
+    $summary[] = t('Gallery: @gallery', array('@gallery' => $settings['glightbox_gallery_mode'] == TRUE ? 'Yes' : 'No'));
+  }
+
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function glightbox_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'];
+  $element = array();
+
+  // Save data that will be later used to extract caption text.
+  // Here views fields may not be rendered yet, so text will be retrieved in the theme function.
+  if (isset($display['views_view'])) {
+    $data_src = array(
+      'view' => $display['views_view'],
+      'row'  => $display['views_row_id'],
+    );
+  }
+  else {
+    $data_src = array(
+      'node'      => $entity,
+      'view_mode' => $settings['glightbox_view_mode'],
+      'langcode'  => $langcode,
+    );
+  }
+
+  // Output each image as a lightbox.
+  foreach ($items as $i => $item) {
+
+    // Set up gallery id. If gallery grouping is off then each image gets unique gallery id.
+    if ($settings['glightbox_gallery_mode']) {
+      $gallery_id = $settings['glightbox_gallery_id'];
+    }
+    else {
+      $gallery_id = backdrop_html_id('single-image');
+    }
+
+    $element[$i] = array(
+      '#theme'                => 'glightbox',
+      '#item'                 => $item,
+      '#content_image_style'  => $settings['glightbox_image_style_content'],
+      '#lightbox_image_style' => $settings['glightbox_image_style_lightbox'],
+      '#title_src'            => $settings['glightbox_title_src'],
+      '#description_src'      => $settings['glightbox_description_src'],
+      '#desc_position'        => $settings['glightbox_desc_position'],
+      '#data_src'             => $data_src,
+      '#gallery_id'           => $gallery_id,
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function glightbox_theme($existing, $type, $theme, $path) {
+  return array(
+    'glightbox' => array(
+      'variables' => array(
+        'item' => array(),
+        'content_image_style' => '',
+        'lightbox_image_style' => '',
+        'title_src' => '',
+        'description_src' => '',
+        'desc_position' => '',
+        'data_src' => array(),
+        'gallery_id' => '',
+      ),
+      'file' => 'glightbox.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Returns all valid non-excluded text fields from the view.
+ * Returned value is an array containing (field's name => ui name) pairs.
+ */
+function get_non_excluded_text_fields_list($view) {
+  $fields = $view->display_handler->get_handlers('field');
+  $result = array();
+  foreach ($fields as $field_name => $field) {
+    // Ignore excluded fields.
+    if (!empty($field->options['exclude']))
+      continue;
+
+    $field_valid = FALSE;
+    if (isset($field->field_info)) {
+      $type = empty($field->field_info['type']) ? NULL : $field->field_info['type'];
+      // Consider valid if it is of any text type.
+      if (in_array($type, get_valid_field_types())) {
+        $field_valid = TRUE;
+      }
+    }
+    // Consider valid if names start with 'title' and 'nothing'.
+    // These correspond to Content:title and Global: Custom text.
+    elseif (substr($field_name, 0, 5) == 'title' || substr($field_name, 0, 7) == 'nothing') {
+      $field_valid = TRUE;
+    }
+
+    if ($field_valid) {
+      $result[$field_name] = $field->ui_name();
+    }
+  }
+  return count($result) ? $result : NULL;
+}
+
+/**
+ * Returns option label based on it's value.
+ */
+function get_option_label($option_value, $instance = NULL) {
+  switch($option_value) {
+    case 'alt_tag':
+      return t('Image alt tag');
+    case 'title_tag':
+      return t('Image title tag');
+    case 'node_title':
+      return t('Node title');
+    default:
+    if (isset($instance)) {
+      $field_info = field_info_instance(
+        $instance['entity_type'],
+        $option_value,
+        $instance['bundle']
+      );
+      return $field_info['label'];
+    }
+  }
+  return '';
+}
+
+/**
+ * Returns text field types that can be used for captions.
+ */
+function get_valid_field_types() {
+  $valid_field_types = array(
+    'text',
+    'text_long',
+    'text_with_summary',
+    'taxonomy_term_reference'
+  );
+  return $valid_field_types;
+}
