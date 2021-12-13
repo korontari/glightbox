@@ -1,0 +1,7 @@
+/**
+ * @file
+ * Contains fix to prevent page jumping to the top when the lightbox opens.
+ */
+body.glightbox-open {
+  overflow: unset;
+}
