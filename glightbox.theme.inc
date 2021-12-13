@@ -21,9 +21,11 @@
  * @ingroup themeable
  */
 function theme_glightbox($variables = array()) {
+  $module_path = backdrop_get_path('module', 'glightbox');
   backdrop_add_library('glightbox', 'glightbox', FALSE);
   backdrop_add_js(array('glightbox' => config_get('glightbox.settings')), 'setting');
-  backdrop_add_js(backdrop_get_path('module', 'glightbox') . '/js/glightbox.js');
+  backdrop_add_js($module_path . '/js/glightbox.js');
+  backdrop_add_css($module_path . '/css/glightbox.css');  // Load fix (page jumping to the top on lightbox open).
 
   $item = $variables['item'];
 
@@ -88,7 +90,7 @@ function theme_glightbox($variables = array()) {
 }
 
 /**
- * Returns text for lightbox caption from views or node fields or image tags.
+ * Returns text for lightbox caption either from views, node fields or image tags.
  */
 function get_text_from_data($text_src, $item, $data_src) {
   $result = '';
