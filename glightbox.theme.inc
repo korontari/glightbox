@@ -94,6 +94,7 @@ function theme_glightbox($variables = array()) {
  */
 function get_text_from_data($text_src, $item, $data_src) {
   $result = '';
+  if (empty($text_src)) return $result; // Return empty string if text source is set to 'None'.
   switch ($text_src) {
     case 'alt_tag':
       $result = $item['alt'];
@@ -114,8 +115,10 @@ function get_text_from_data($text_src, $item, $data_src) {
       elseif (isset($data_src['node'])) {
         // Get text data from node field.
         $items = field_get_items('node', $data_src['node'], $text_src, $data_src['langcode']);
-        $field = field_view_value('node', $data_src['node'], $text_src, $items[0], $data_src['view_mode'], $data_src['langcode']);
-        $result = backdrop_render($field);
+        if (!empty($items)) {
+          $field = field_view_value('node', $data_src['node'], $text_src, $items[0], $data_src['view_mode'], $data_src['langcode']);
+          $result = backdrop_render($field);
+        }
       }
   }
   return $result;

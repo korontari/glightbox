@@ -112,7 +112,10 @@ function glightbox_field_formatter_settings_form($field, $instance, $view_mode, 
   // Create list of valid text fields and gallery id for view.
   if (isset($form_state['view'])) {
     $view = $form_state['view'];
-    $text_options += get_non_excluded_text_fields_list($view);
+    $text_fields = get_view_text_fields_list($view);
+    if (isset($text_fields)) {
+      $text_options += $text_fields;
+    }
     $gallery_id = 'gallery-' . $view->name . '-' . $view->current_display;
   }
   // Get list of valid text fields and gallery id from the node.
@@ -317,17 +320,13 @@ function glightbox_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Returns all valid non-excluded text fields from the view.
+ * Returns all valid text fields from the view.
  * Returned value is an array containing (field's name => ui name) pairs.
  */
-function get_non_excluded_text_fields_list($view) {
+function get_view_text_fields_list($view) {
   $fields = $view->display_handler->get_handlers('field');
   $result = array();
   foreach ($fields as $field_name => $field) {
-    // Ignore excluded fields.
-    if (!empty($field->options['exclude']))
-      continue;
-
     $field_valid = FALSE;
     if (isset($field->field_info)) {
       $type = empty($field->field_info['type']) ? NULL : $field->field_info['type'];
