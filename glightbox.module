@@ -366,7 +366,7 @@ function get_option_label($option_value, $instance = NULL) {
         $option_value,
         $instance['bundle']
       );
-      return $field_info['label'];
+      return check_plain($field_info['label']);
     }
   }
   return '';
