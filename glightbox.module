@@ -57,6 +57,17 @@ function glightbox_menu() {
 }
 
 /**
+ * Implements hook_init().
+ */
+function glightbox_init() {
+  // Create selector(class) that is unique for the current document.
+  // This is done for security reasons so that only the links generated
+  // by this module are processed by the javascript plugin. Manually 
+  // injected links are thus ignored.
+  config_set('glightbox.settings', 'selector', 'glightbox-' . backdrop_random_key(8));
+}
+
+/**
  * Implements hook_field_formatter_info().
  */
 function glightbox_field_formatter_info() {
@@ -336,7 +347,7 @@ function get_view_text_fields_list($view) {
       }
     }
     // Consider valid if names start with 'title' and 'nothing'.
-    // These correspond to Content:title and Global: Custom text.
+    // These correspond to Content:title and Global:Custom text.
     elseif (substr($field_name, 0, 5) == 'title' || substr($field_name, 0, 7) == 'nothing') {
       $field_valid = TRUE;
     }

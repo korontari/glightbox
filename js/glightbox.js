@@ -8,6 +8,7 @@
     attach: function (context, settings) {
 
       const lightbox = GLightbox({
+        selector: '.' + settings.glightbox.selector,
         openEffect: settings.glightbox.effect_open,
         closeEffect: settings.glightbox.effect_close,
         slideEffect: settings.glightbox.effect_slide,
