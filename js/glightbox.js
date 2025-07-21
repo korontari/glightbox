@@ -11,7 +11,7 @@
         openEffect: settings.glightbox.effect_open,
         closeEffect: settings.glightbox.effect_close,
         slideEffect: settings.glightbox.effect_slide,
-        moreText: settings.glightbox.ui_more_text,
+        moreText: Backdrop.checkPlain(settings.glightbox.ui_more_text),
         moreLength: Number(settings.glightbox.ui_more_length),
         closeButton: Boolean(settings.glightbox.ui_close_btn),
         touchNavigation: Boolean(settings.glightbox.navigation_touch),

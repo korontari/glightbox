@@ -34,8 +34,8 @@ function theme_glightbox($variables = array()) {
     'uri'    => $item['uri'],
     'width'  => $item['width'],
     'height' => $item['height'],
-    'alt'    => $item['alt'],
-    'title'  => $item['title'],
+    'alt'    => check_plain($item['alt']),
+    'title'  => check_plain($item['title']),
   );
   if (!empty($variables['content_image_style'])) {
     $image_variables['style_name'] = $variables['content_image_style'];
@@ -97,23 +97,23 @@ function get_text_from_data($text_src, $item, $data_src) {
   if (empty($text_src)) return $result; // Return empty string if text source is set to 'None'.
   switch ($text_src) {
     case 'alt_tag':
-      $result = $item['alt'];
+      $result = check_plain($item['alt']);
       break;
     case 'title_tag':
-      $result = $item['title'];
+      $result = check_plain($item['title']);
       break;
     case 'node_title':
       if (isset($data_src['node'])) {
-        $result = $data_src['node']->title;
+        $result = check_plain($data_src['node']->title);
       }
       break;
     default:
       if (isset($data_src['view'])) {
-        // Get text data from views field.
+        // Get text data from views field. Should already be sanitized.
         $result = $data_src['view']->style_plugin->get_field($data_src['row'], $text_src);
       }
       elseif (isset($data_src['node'])) {
-        // Get text data from node field.
+        // Get text data from node field. Should already be sanitized.
         $items = field_get_items('node', $data_src['node'], $text_src, $data_src['langcode']);
         if (!empty($items)) {
           $field = field_view_value('node', $data_src['node'], $text_src, $items[0], $data_src['view_mode'], $data_src['langcode']);
