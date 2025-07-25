@@ -24,7 +24,7 @@ function theme_glightbox($variables = array()) {
   $module_path = backdrop_get_path('module', 'glightbox');
   $config = config_get('glightbox.settings');
   // Combine module's config data and the selector into a single array.
-  $plugin_settings = $config += ['selector' => $variables['selector']];
+  $plugin_settings = $config + ['selector' => $variables['selector']];
 
   backdrop_add_library('glightbox', 'glightbox', FALSE);
   backdrop_add_js(array('glightbox' => $plugin_settings), 'setting');
