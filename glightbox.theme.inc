@@ -22,8 +22,12 @@
  */
 function theme_glightbox($variables = array()) {
   $module_path = backdrop_get_path('module', 'glightbox');
+  $config = config_get('glightbox.settings');
+  // Combine module's config data and the selector into a single array.
+  $plugin_settings = $config + ['selector' => $variables['selector']];
+
   backdrop_add_library('glightbox', 'glightbox', FALSE);
-  backdrop_add_js(array('glightbox' => config_get('glightbox.settings')), 'setting');
+  backdrop_add_js(array('glightbox' => $plugin_settings), 'setting');
   backdrop_add_js($module_path . '/js/glightbox.js');
   backdrop_add_css($module_path . '/css/glightbox.css');  // Load fix (page jumping to the top on lightbox open).
 
@@ -62,8 +66,9 @@ function theme_glightbox($variables = array()) {
   $options = array(
     'html' => TRUE,
     'attributes' => array(
-      'class'            => array('glightbox'),
-      'data-gallery'     => $variables['gallery_id'],
+       // Class name is unique and generated for each document.
+      'class'        => array($variables['selector']),
+      'data-gallery' => $variables['gallery_id'],
     ),
   );
 

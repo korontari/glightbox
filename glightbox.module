@@ -14,7 +14,7 @@ function glightbox_library_info() {
   $libraries['glightbox'] = array(
     'title' => 'Glightbox',
     'website' => 'https://github.com/biati-digital/glightbox',
-    'version' => '3.1.0',
+    'version' => '3.3.1',
     'js' => array(
       $module_path . '/library/glightbox.min.js' => array(
         'weight' => 1,
@@ -119,7 +119,7 @@ function glightbox_field_formatter_settings_form($field, $instance, $view_mode, 
     $gallery_id = 'gallery-' . $view->name . '-' . $view->current_display;
   }
   // Get list of valid text fields and gallery id from the node.
-  if(isset($form['#fields'])) {
+  if (isset($form['#fields'])) {
     // Add option to use node title.
     $text_options['node_title'] = get_option_label('node_title');
     // Add any text field to the options list.
@@ -302,9 +302,16 @@ function glightbox_field_formatter_view($entity_type, $entity, $field, $instance
  * Implements hook_theme().
  */
 function glightbox_theme($existing, $type, $theme, $path) {
+  // Create selector(class) that is unique for the current document.
+  // This is done for security reasons so that only the links generated
+  // by this module are processed by the javascript plugin. Manually
+  // injected links are thus ignored.
+  $selector = 'glightbox-' . backdrop_random_key(8);
+  // Return array with the theme variables.
   return array(
     'glightbox' => array(
       'variables' => array(
+        'selector' => $selector,
         'item' => array(),
         'content_image_style' => '',
         'lightbox_image_style' => '',
@@ -336,7 +343,7 @@ function get_view_text_fields_list($view) {
       }
     }
     // Consider valid if names start with 'title' and 'nothing'.
-    // These correspond to Content:title and Global: Custom text.
+    // These correspond to Content:title and Global:Custom text.
     elseif (substr($field_name, 0, 5) == 'title' || substr($field_name, 0, 7) == 'nothing') {
       $field_valid = TRUE;
     }
@@ -352,7 +359,7 @@ function get_view_text_fields_list($view) {
  * Returns option label based on it's value.
  */
 function get_option_label($option_value, $instance = NULL) {
-  switch($option_value) {
+  switch ($option_value) {
     case 'alt_tag':
       return t('Image alt tag');
     case 'title_tag':
