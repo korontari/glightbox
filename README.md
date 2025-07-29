@@ -40,7 +40,7 @@ Current Maintainers
 -------------------
 
 - [Pavel](https://github.com/korontari).
-- Additional maintainers are welcome.
+- Co-maintainers are welcome.
 
 Credits
 -------
