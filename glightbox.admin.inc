@@ -3,7 +3,6 @@
  * @file
  * Administration inteface for GLightbox.
  */
-
 function glightbox_admin_form($form, &$form_state) {
   $config = config('glightbox.settings');
 
@@ -114,14 +113,14 @@ function glightbox_admin_form($form, &$form_state) {
   );
 
   // Settings for automatic caption positioning.
-  $form['ui']['cap_auto'] = array(
+  $form['ui']['advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced settings'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
 
-  $form['ui']['cap_auto']['auto_aspect_ratio'] = array(
+  $form['ui']['advanced']['auto_aspect_ratio'] = array(
     '#type' => 'number',
     '#title' => t('Caption orientation breakpoint'),
     '#default_value' => $config->get('ui_auto_aspect_ratio'),
@@ -132,7 +131,7 @@ function glightbox_admin_form($form, &$form_state) {
     '#description' => t('The value you set here is the width-to-height ratio used to decide caption orientation when in <em>Automatic</em> mode. For example, if set to 1.0 (a square), images with a ratio below 1.0 (portrait) will have a vertical caption, while images with a ratio above 1.0 (landscape) will have a horizontal caption. Default breakpoint is 1.3 (approximate ratio of a 4:3 landscape image).'),
   );
 
-  $form['ui']['cap_auto']['auto_horiz_pos'] = array(
+  $form['ui']['advanced']['auto_horiz_pos'] = array(
     '#type' => 'select',
     '#title' => t('Auto horizontal position'),
     '#options' => array(
@@ -143,7 +142,7 @@ function glightbox_admin_form($form, &$form_state) {
     '#description' => t('Preferred horizontal caption position in <em>Automatic</em> mode.'),
   );
 
-  $form['ui']['cap_auto']['auto_vert_pos'] = array(
+  $form['ui']['advanced']['auto_vert_pos'] = array(
     '#type' => 'select',
     '#title' => t('Auto vertical position'),
     '#options' => array(

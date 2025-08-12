@@ -355,7 +355,7 @@ function get_view_text_fields_list($view) {
  * Returns list of caption position options for the dropdown list.
  * If requested adds 'global' option using value from the config.
  */
-function get_caption_position_options($add_global = false) {
+function get_caption_position_options($add_global = FALSE) {
   // Basic set of options.
   $opt_list = array(
     'bottom' => t('Bottom'),
