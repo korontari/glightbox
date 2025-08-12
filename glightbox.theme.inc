@@ -61,17 +61,13 @@ function theme_glightbox($variables = array()) {
   $title_text       = get_text_from_data($variables['title_src'],       $item, $variables['data_src']);
   $description_text = get_text_from_data($variables['description_src'], $item, $variables['data_src']);
 
-  echo '<pre>';
-  echo '*******' . PHP_EOL;
   // If caption position is set to global then take the value from the config.
   if ($variables['caption_pos'] == 'global') {
     $desc_position = $config['ui_caption_pos'];
-    echo('global ');
   }
   else {
     $desc_position = $variables['caption_pos'];
   }
-  print_r($desc_position . ' ');
 
   // Calculate caption position if set to automatic.
   if ($desc_position == 'auto') {
@@ -82,10 +78,7 @@ function theme_glightbox($variables = array()) {
     else {
       $desc_position = $config['ui_auto_vert_pos'];
     }
-    print_r($image_aspect_ratio . ' ');
-    print_r($desc_position . ' ');
   }
-  echo '</pre>';
 
   // Generate link options.
   $options = array(
