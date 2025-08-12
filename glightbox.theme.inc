@@ -60,7 +60,32 @@ function theme_glightbox($variables = array()) {
   // Extract caption text from views or node data or get it from image tags.
   $title_text       = get_text_from_data($variables['title_src'],       $item, $variables['data_src']);
   $description_text = get_text_from_data($variables['description_src'], $item, $variables['data_src']);
-  $desc_position    = get_text_from_data($variables['desc_position'],   $item, $variables['data_src']);
+
+  echo '<pre>';
+  echo '*******' . PHP_EOL;
+  // If caption position is set to global then take the value from the config.
+  if ($variables['caption_pos'] == 'global') {
+    $desc_position = $config['ui_caption_pos'];
+    echo('global ');
+  }
+  else {
+    $desc_position = $variables['caption_pos'];
+  }
+  print_r($desc_position . ' ');
+
+  // Calculate caption position if set to automatic.
+  if ($desc_position == 'auto') {
+    $image_aspect_ratio = round($item['width'] / $item['height'], 1);
+    if ($image_aspect_ratio > $config['ui_auto_aspect_ratio']) {
+      $desc_position = $config['ui_auto_horiz_pos'];
+    }
+    else {
+      $desc_position = $config['ui_auto_vert_pos'];
+    }
+    print_r($image_aspect_ratio . ' ');
+    print_r($desc_position . ' ');
+  }
+  echo '</pre>';
 
   // Generate link options.
   $options = array(
@@ -95,7 +120,7 @@ function theme_glightbox($variables = array()) {
 }
 
 /**
- * Returns text for lightbox caption either from views, node fields or image tags.
+ * Returns text for the lightbox caption either from views, node fields or image tags.
  */
 function get_text_from_data($text_src, $item, $data_src) {
   $result = '';
