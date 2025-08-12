@@ -3,7 +3,6 @@
  * @file
  * Administration inteface for GLightbox.
  */
-
 function glightbox_admin_form($form, &$form_state) {
   $config = config('glightbox.settings');
 
@@ -86,17 +85,12 @@ function glightbox_admin_form($form, &$form_state) {
     '#description' => t('Close the lightbox when clicking outside the active slide.'),
   );
 
-  $form['ui']['descr_position'] = array(
+  $form['ui']['caption_pos'] = array(
     '#type' => 'select',
     '#title' => t('Caption position'),
-    '#options' => array(
-        'bottom' => t('Bottom'),
-        'top'    => t('Top'),
-        'left'   => t('Left'),
-        'right'  => t('Right'),
-      ),
-    '#default_value' => $config->get('ui_descr_position'),
-    '#description' => t('Position of the <em>Title</em> and <em>Description</em> inside the lightbox.'),
+    '#options' => get_caption_position_options(),
+    '#default_value' => $config->get('ui_caption_pos'),
+    '#description' => t('Position of the caption (which includes the <em>Title</em> and <em>Description</em> fields) in the lightbox. When <em>Automatic</em> mode is enabled, captions are placed vertically or horizontally based on the image’s width-to-height ratio (aspect ratio). See <em>Advanced settings</em> below to fine-tune this mode.'),
   );
 
   $form['ui']['more_text'] = array(
@@ -116,6 +110,47 @@ function glightbox_admin_form($form, &$form_state) {
     '#max' => 999,
     '#size' => 3,
     '#description' => t('Number of characters to display on the description before adding the <em>more text</em> link (only for mobiles). Setting it to zero will display the entire description.'),
+  );
+
+  // Settings for automatic caption positioning.
+  $form['ui']['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['ui']['advanced']['auto_aspect_ratio'] = array(
+    '#type' => 'number',
+    '#title' => t('Caption orientation breakpoint'),
+    '#default_value' => $config->get('ui_auto_aspect_ratio'),
+    '#min' => 0.1,
+    '#max' => 3.0,
+    '#step' => 0.1,
+    '#size' => 2,
+    '#description' => t('The value you set here is the width-to-height ratio used to decide caption orientation when in <em>Automatic</em> mode. For example, if set to 1.0 (a square), images with a ratio below 1.0 (portrait) will have a vertical caption, while images with a ratio above 1.0 (landscape) will have a horizontal caption. Default breakpoint is 1.3 (approximate ratio of a 4:3 landscape image).'),
+  );
+
+  $form['ui']['advanced']['auto_horiz_pos'] = array(
+    '#type' => 'select',
+    '#title' => t('Auto horizontal position'),
+    '#options' => array(
+      'bottom' => t('Bottom'),
+      'top'    => t('Top'),
+    ),
+    '#default_value' => $config->get('ui_auto_horiz_pos'),
+    '#description' => t('Preferred horizontal caption position in <em>Automatic</em> mode.'),
+  );
+
+  $form['ui']['advanced']['auto_vert_pos'] = array(
+    '#type' => 'select',
+    '#title' => t('Auto vertical position'),
+    '#options' => array(
+      'right'  => t('Right'),
+      'left'   => t('Left'),
+    ),
+    '#default_value' => $config->get('ui_auto_vert_pos'),
+    '#description' => t('Preferred vertical caption position in <em>Automatic</em> mode.'),
   );
 
   // Navigation
@@ -248,9 +283,12 @@ function glightbox_admin_form_submit($form, &$form_state) {
   $config->set('effect_slide', $form_state['values']['slide']);
   $config->set('ui_close_btn', $form_state['values']['close_btn']);
   $config->set('ui_close_outside', $form_state['values']['close_outside']);
-  $config->set('ui_descr_position', $form_state['values']['descr_position']);
+  $config->set('ui_caption_pos', $form_state['values']['caption_pos']);
   $config->set('ui_more_text', $form_state['values']['more_text']);
   $config->set('ui_more_length', $form_state['values']['more_length']);
+  $config->set('ui_auto_aspect_ratio', $form_state['values']['auto_aspect_ratio']);
+  $config->set('ui_auto_horiz_pos', $form_state['values']['auto_horiz_pos']);
+  $config->set('ui_auto_vert_pos', $form_state['values']['auto_vert_pos']);
   $config->set('navigation_loop', $form_state['values']['loop']);
   $config->set('navigation_touch', $form_state['values']['touch']);
   $config->set('navigation_touch_follow_axis', $form_state['values']['touch_follow_axis']);

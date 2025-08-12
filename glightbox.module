@@ -69,7 +69,7 @@ function glightbox_field_formatter_info() {
         'glightbox_image_style_lightbox' => '',
         'glightbox_title_src' => '',
         'glightbox_description_src' => '',
-        'glightbox_desc_position' => '',
+        'glightbox_caption_pos' => 'global',
         'glightbox_view_mode' => '',
         'glightbox_gallery_id' => '',
         'glightbox_gallery_mode' => FALSE,
@@ -84,6 +84,7 @@ function glightbox_field_formatter_info() {
 function glightbox_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $settings = $instance['display'][$view_mode]['settings'];
   $image_styles = image_style_options(FALSE, PASS_THROUGH);
+  $config = config('glightbox.settings');
   $gallery_id = '';
 
   $element['glightbox_image_style_content'] = array(
@@ -150,20 +151,14 @@ function glightbox_field_formatter_settings_form($field, $instance, $view_mode, 
     '#default_value' => $settings['glightbox_description_src'],
   );
 
-  $element['glightbox_desc_position'] = array(
+  $caption_pos_options = get_caption_position_options(true);
+  $caption_pos_global = $config->get('ui_caption_pos');
+  $element['glightbox_caption_pos'] = array(
     '#type' => 'select',
     '#title' => t('Caption position'),
-    '#options' => $text_options,
-    '#empty_option' => t('None'),
-    '#default_value' => $settings['glightbox_desc_position'],
-  );
-
-  // The long description is put in a separate markup field because othewise it is not wrapped in
-  // 'Manage displays' tab with enabled default('Seven') admin theme and thus creates extremely wide space.
-  $element['glightbox_desc_position_description'] = array(
-    '#prefix' => '<div class="description" style="white-space: normal;">', // Reset wrapping(!).
-    '#markup' => t('Defines position of the <em>Title</em> and <em>Description</em> area in the lightbox for individual node. The output of the field must be text with one of the following values: <em>bottom, top, left, right</em> (case insensitive). Any other value will have no effect. <a href="@link_taxonomy" target="_blank">Taxonomy terms</a> can serve well for that purpose. This setting overrides the global setting in the <a href="@link_config" target="_blank">configuration page</a> (currently set to <em>@global_position_setting</em>).', array('@link_taxonomy' => url('/admin/structure/taxonomy'), '@link_config' => url('/admin/config/media/glightbox'), '@global_position_setting' => config_get('glightbox.settings', 'ui_descr_position'))),
-    '#suffix' => '</div>',
+    '#options' => $caption_pos_options,
+    '#default_value' => $settings['glightbox_caption_pos'],
+    '#description' => t('Sets the position of the <em>Title</em> and <em>Description</em> area in the lightbox for the node. Overrides the global setting in the <a href="@link_config" target="_blank">configuration page</a> (currently set to <em>@caption_pos_global</em>).', array('@link_taxonomy' => url('/admin/structure/taxonomy'), '@link_config' => url('/admin/config/media/glightbox'), '@caption_pos_global' => $caption_pos_options[$caption_pos_global])),
   );
 
   // Add the current view mode so we can control the view mode for node fields.
@@ -182,7 +177,7 @@ function glightbox_field_formatter_settings_form($field, $instance, $view_mode, 
     $element['glightbox_gallery_mode'] = array(
       '#type' => 'checkbox',
       '#title' => t('Gallery'),
-      '#description' => t('Display images in a gallery.'),
+      '#description' => t('When enabled, allows switching between all images in the node using left and right arrows without leaving the lightbox.'),
       '#default_value' => $settings['glightbox_gallery_mode'],
     );
   }
@@ -232,8 +227,9 @@ function glightbox_field_formatter_settings_summary($field, $instance, $view_mod
   }
 
   // Caption position.
-  if (!empty($settings['glightbox_desc_position'])) {
-    $ui_name = get_option_label($settings['glightbox_desc_position'], $instance);
+  if (!empty($settings['glightbox_caption_pos'])) {
+    $current_value = $settings['glightbox_caption_pos'];
+    $ui_name = get_caption_position_options(true)[$current_value];
     $summary[] = t('Caption position: @title', array('@title' => $ui_name));
   }
   else {
@@ -289,7 +285,7 @@ function glightbox_field_formatter_view($entity_type, $entity, $field, $instance
       '#lightbox_image_style' => $settings['glightbox_image_style_lightbox'],
       '#title_src'            => $settings['glightbox_title_src'],
       '#description_src'      => $settings['glightbox_description_src'],
-      '#desc_position'        => $settings['glightbox_desc_position'],
+      '#caption_pos'          => $settings['glightbox_caption_pos'],
       '#data_src'             => $data_src,
       '#gallery_id'           => $gallery_id,
     );
@@ -317,7 +313,7 @@ function glightbox_theme($existing, $type, $theme, $path) {
         'lightbox_image_style' => '',
         'title_src' => '',
         'description_src' => '',
-        'desc_position' => '',
+        'caption_pos' => '',
         'data_src' => array(),
         'gallery_id' => '',
       ),
@@ -353,6 +349,27 @@ function get_view_text_fields_list($view) {
     }
   }
   return count($result) ? $result : NULL;
+}
+
+/**
+ * Returns list of caption position options for the dropdown list.
+ * If requested adds 'global' option using value from the config.
+ */
+function get_caption_position_options($add_global = FALSE) {
+  // Basic set of options.
+  $opt_list = array(
+    'bottom' => t('Bottom'),
+    'top'    => t('Top'),
+    'left'   => t('Left'),
+    'right'  => t('Right'),
+    'auto'   => t('Automatic'),
+  );
+  // Add global option i.e. caption position as defined in config.
+  if ($add_global) {
+    $value = config_get('glightbox.settings', 'ui_caption_pos');
+    $opt_list['global'] = t('Global') . ' (' . $opt_list[$value] . ')';
+  }
+  return $opt_list;
 }
 
 /**

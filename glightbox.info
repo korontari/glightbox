@@ -3,3 +3,8 @@ name = GLightbox
 description = Javascript Lightbox plugin.
 backdrop = 1.x
 configure = admin/config/media/glightbox
+
+; Added by Backdrop CMS packaging script on 2025-07-28
+project = glightbox
+version = 1.x-1.0.3
+timestamp = 1753745191
